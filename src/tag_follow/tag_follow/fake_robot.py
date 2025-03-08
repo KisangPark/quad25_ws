@@ -1,9 +1,6 @@
 """
-Aruco Tag follower
-1) subscribe transition and distance message
-2) calculate linear & angular velocity
-3) publish twist topic to /command/Action
-
+Fake robot node to check topic
+    -> subscibe /command/Action and aruco tag position topic
 """
 
 
