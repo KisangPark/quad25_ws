@@ -16,6 +16,8 @@ from sensor_msgs.msg import Image
 from std_msgs.msg import Bool #Float32MultiArray
 from rclpy.qos import QoSProfile
 
+from cv_bridge import CvBridge
+
 import cv2
 import os
 
@@ -29,7 +31,7 @@ class FAKE_ROBOT(Node):
         #1) action velocity subscription
         self.subscription_1 = self.create_subscription(
             Twist,
-            '/command/setAction', # length 3 vector of integer angles
+            '/mcu/command/manual_twist', # length 3 vector of integer angles
             self.logger_velocity,
             qos_profile
         )
@@ -47,18 +49,21 @@ class FAKE_ROBOT(Node):
         #3) tag position logger
         self.subscription_3 = self.create_subscription(
             Point,
-            '/tag_position', # length 3 vector of integer angles
+            '/tag_location', # length 3 vector of integer angles
             self.logger_position,
             qos_profile
         )
         self.subscription_3
 
-        #self.timer = self.create_timer(0.1, self.publish_camera)
+        #publish camera frame to ROS Image
+        self.publisher = self.create_publisher(Image,
+        '/argus/ar0234_front_left/image_raw', qos_profile)
+        self.timer = self.create_timer(0.1, self.publish_camera)
 
     #total 3 callbacks
     def logger_velocity(self, msg):
         linear_vel = msg.linear.x #float32
-        self.get_logger().info('fake robot velocity: %f' %linear_vel)
+        self.get_logger().info('fake robot velocity: ')#%f' %linear_vel)
 
     def logger_return(self, msg):
         value = 1 if msg.data == True else 0
@@ -67,17 +72,27 @@ class FAKE_ROBOT(Node):
     def logger_position(self, msg):
         self.get_logger().info('fake robot tag: %d, %d, %d' %msg.x %msg.y %msg.z)
 
-    # def publish_camera(self):
-    #     imager = Image()
-    #     cap = cv2.VideoCapture(0)
-    #     while cap.isOpened():
-    #         ret, frame = cap.read()
-    #         size_tuple = np.shape(frame)
-    #         flattened_image = np.array(frame).flatten()
-    #         imager.data = flattened_image
-    #         imager.height = size_tuple[0]
-    #         imager.width = size_tuple[1]
-    #         self.publisher.publish(imager)
+
+
+    def publish_camera(self):
+        imager = Image()
+        cap = cv2.VideoCapture(0)
+        while cap.isOpened():
+            ret, frame = cap.read()
+            size_tuple = np.shape(frame)
+            #flattened_image = np.array(frame).flatten()
+            # print(size_tuple)
+            # cv2.imshow('test', frame)
+            # cv2.waitKey(0)
+
+            #use cv bridge to convert
+            imager = CvBridge().cv2_to_imgmsg(frame, "bgr8")
+
+            # imager.data = frame
+            # imager.height = size_tuple[0]
+            # imager.width = size_tuple[1]
+            self.publisher.publish(imager)
+
 
 def main(args=None):
     #main function call

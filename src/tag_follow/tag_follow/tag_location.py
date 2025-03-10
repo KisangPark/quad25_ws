@@ -23,10 +23,12 @@ from sensor_msgs.msg import Image
 from std_msgs.msg import Int32, Bool #Float32MultiArray
 from rclpy.qos import QoSProfile
 
+from cv_bridge import CvBridge
+
 #load calibration data -> saved from calibration.py
 inner_matrix = np.load("/home/kisangpark/v60_ws/src/tag_follow/matrix.npy")
 distortion = np.load("/home/kisangpark/v60_ws/src/tag_follow/distortion.npy")
-real_size = 15
+real_size = 7
 
 #load aruco dictionary, 16 binary!
 arucodict = cv2.aruco.Dictionary_get(cv2.aruco.DICT_4X4_50)
@@ -43,7 +45,7 @@ def return_position(frame):
     #marker detection -> initialize parameters for detector
     detector_param = aruco.DetectorParameters_create()
 
-    if frame: #numpy array
+    if frame is not None: #numpy array
         #gray frame, detect marker
         #gray frame
         frame_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -59,13 +61,18 @@ def return_position(frame):
             #transition[*][0][1]
             trans_mean = np.zeros(len(transition))
 
-            for i in len(transition):
-                #numpy and sum!
-                trans_mean += np.array(transition[i][0])/4
+            try:
+                self.get_logger().info("transition 1st: %f" %transition[0][0][0])
+                for i in len(transition):
+                    #numpy and sum!
+                    trans_mean += np.array(transition[i][0])/4
+            except:
+                print("length error")
+                trans_mean = np.array([0.0,0.0,50.0])
             
             return True, trans_mean
 
-    return False, np.zeros(3) #no frame or corner returned
+    return False, np.array([0.0,0.0,50.0]) #no frame or corner returned
 
 
 
@@ -77,7 +84,7 @@ class LOCATOR(Node):
         #subscriber
         self.subscription = self.create_subscription(
             Image,#ROS2 image topic
-            '/args/ar0234_front_left/image_raw', # length 3 vector of integer angles
+            '/argus/ar0234_front_left/image_raw', # length 3 vector of integer angles
             self.get_position,
             qos_profile
         )
@@ -100,12 +107,12 @@ class LOCATOR(Node):
     def get_position(self, msg):
         #get image topic, return the position of aruco tag
         #use return_position function 
-        height = msg.height #int
-        wdith = msg.width # int
-        image_vector = np.array(msg.data) #uint8 list
-        frame = np.reshape(image_vector, (msg.height, msg.width))
+        solved_image = CvBridge().imgmsg_to_cv2(msg, "bgr8")
 
-        self.ret, self.transition = return_position(frame)
+        self.ret, self.transition = return_position(solved_image)
+
+        #cv2.imshow('test', solved_image)
+        #cv2.waitKey(200)
 
     
     def tag_recognition(self):

@@ -21,15 +21,15 @@ def calc_velocity(transition, mode):
     #mode received by string
     #1) linear velocity calculation with z
 
-    if transition.z < 30: #under 30cm
+    if transition[2] < 30: #under 30cm
         velocity.linear.x = -1.0
-    elif transition.z > 100:
+    elif transition[2] > 100:
         velocity.linear.x = 1.0
     else:
-        velocity.linear.x = 0
+        velocity.linear.x = 0.0
     
     #2. angular velocity calculation -> differ with mode
-    if transition.x > 20: #horizontal movement over 20cm
+    if transition[0] > 20: #horizontal movement over 20cm
         if mode == "revolute":
             velocity.angular.z = 1.0
         elif mode == "prismatic":
@@ -37,7 +37,7 @@ def calc_velocity(transition, mode):
         else:
             print("unknown mode")# or logger... then should be the method of FOLLOWER
 
-    elif transition.x < -20:
+    elif transition[0] < -20:
         if mode == "revolute":
             velocity.angular.z = -1.0
         elif mode == "prismatic":
@@ -72,7 +72,7 @@ class FOLLOWER(Node):
 
         #publisher
         self.publisher = self.create_publisher(Twist,
-        '/command/setAction', qos_profile)
+        '/mcu/command/manual_twist', qos_profile)
 
         #set timer
         self.timer = self.create_timer(0.1, self.publish_twist)
