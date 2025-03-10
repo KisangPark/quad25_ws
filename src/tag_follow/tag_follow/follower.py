@@ -11,77 +11,94 @@ import numpy as np
 import cv2
 import rclpy
 from rclpy.node import Node
-from std_msgs.msg import Float32MultiArray #Float32MultiArray
+from geometry_msgs.msg import Point, PoseStamped, Twist
+from std_msgs.msg import Bool #Float32MultiArray
 from rclpy.qos import QoSProfile
 
 
-class GET_FRAME(Node):
+def calc_velocity(transition, mode):
+    velocity = Twist()
+    #mode received by string
+    #1) linear velocity calculation with z
+
+    if transition.z < 30: #under 30cm
+        velocity.linear.x = -1.0
+    elif transition.z > 100:
+        velocity.linear.x = 1.0
+    else:
+        velocity.linear.x = 0
+    
+    #2. angular velocity calculation -> differ with mode
+    if transition.x > 20: #horizontal movement over 20cm
+        if mode == "revolute":
+            velocity.angular.z = 1.0
+        elif mode == "prismatic":
+            velocity.linear.y = 1.0
+        else:
+            print("unknown mode")# or logger... then should be the method of FOLLOWER
+
+    elif transition.x < -20:
+        if mode == "revolute":
+            velocity.angular.z = -1.0
+        elif mode == "prismatic":
+            velocity.linear.y = -1.0
+        else:
+            print("unknown mode")
+    
+    return velocity
+
+
+class FOLLOWER(Node):
     def __init__(self):
-        super().__init__('get_frame')
+        super().__init__('follower')
         qos_profile = QoSProfile(depth=10)
 
         #subscriber
-        self.subscription = self.create_subscription(
-            Float32MultiArray,
-            '/angle', # length 3 vector of integer angles
-            self.record_angle,
+        self.tag_subscription = self.create_subscription(
+            Point,
+            '/tag_location', # length 3 vector of integer angles
+            self.save_location,
             qos_profile
         )
-        self.subscription #prevent unused variable warning
+        self.tag_subscription #prevent unused variable warning
+
+        self.ret_subscription = self.create_subscription(
+            Bool,
+            '/tag_return', # length 3 vector of integer angles
+            self.ret_check,
+            qos_profile
+        )
+        self.ret_subscription #prevent unused variable warning
 
         #publisher
-        self.publisher = self.create_publisher(Float32MultiArray,
-        'state', qos_profile)
+        self.publisher = self.create_publisher(Twist,
+        '/command/setAction', qos_profile)
 
         #set timer
-        self.timer = self.create_timer(0.1, self.get_frame)
+        self.timer = self.create_timer(0.1, self.publish_twist)
+
+        self.flag = False
+
+    def ret_check(self, msg):
+        self.flag = msg.data
+
+    def save_location(self, msg):
+        #self.get_logger().info('transition received')
+        self.transition = np.array([msg.x, msg.y, msg.z])
 
 
-    def record_angle(self, msg):
-        #self.get_logger().info('angle received from controller')
-        self.servo_angle = msg.data
-        #record angle from subscription
-
-
-    def get_frame(self):
-        #read camera
-        try:
-            frame = self.image
-            #ret, frame = self.cap.read()   #*********************************************************************************
-            #cv2.imshow('test', frame) #works only when run separately
-            #cv2.waitKey(1)
-            #process image -> get coordinate of vertices, 4x2 matrix
-            vertex_list = detect_red_box(frame) # ERROR!!!!!!!!!!!!!!!!!!!!!!!!!!
-            #get coordinate of arm tip, 1x2 vector
-            arm_tip = detect_green_dot(frame)
-
-            #self.get_logger().info("got box and dot")
-
-            # append all
-            state = np.array(vertex_list).flatten().tolist()
-            state += arm_tip
-            try:
-                state += self.servo_angle #angle info received
-                #self.get_logger().info("servo angle appended")
-            except:
-                state += np.zeros(3).tolist()
-
-        except:
-            self.get_logger().info("cap not opened")
-            state = np.zeros(13)
-
-        #publish
-        state_array = Float32MultiArray()
-        state_array.data = np.float32(state).tolist()
-        #self.get_logger().info('successfully transitioned, publishing...')
-        self.publisher.publish(state_array)
-
+    def publish_twist(self):
+        #if false, no frame or corner returned -> 0 velocity
+        #if true, calculate and publish (if no published, no moving)
+        if self.flag == True:
+            velocity = calc_velocity(self.transition, "revolute") # or prismatic
+            self.publisher.publish(velocity)
 
 
 def main(args=None):
     #main function call
     rclpy.init(args=args)
-    node = GET_FRAME()
+    node = FOLLOWER()
     rclpy.spin(node)
     node.destroy_node()
     rclpy.shutdown()

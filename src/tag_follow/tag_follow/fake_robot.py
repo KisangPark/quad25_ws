@@ -1,84 +1,88 @@
 """
 Fake robot node to check topic
-    -> subscibe /command/Action and aruco tag position topic
+
+subscription: command/setAction, tag_return, tag_position
+show logger
+
++ publish image topic to image_raw
 """
 
 
 import numpy as np
-import cv2
 import rclpy
 from rclpy.node import Node
-from std_msgs.msg import Float32MultiArray #Float32MultiArray
+from geometry_msgs.msg import Point, Twist
+from sensor_msgs.msg import Image
+from std_msgs.msg import Bool #Float32MultiArray
 from rclpy.qos import QoSProfile
 
+import cv2
+import os
 
-class GET_FRAME(Node):
+
+class FAKE_ROBOT(Node):
     def __init__(self):
-        super().__init__('get_frame')
+        super().__init__('fake_robot')
         qos_profile = QoSProfile(depth=10)
 
-        #subscriber
-        self.subscription = self.create_subscription(
-            Float32MultiArray,
-            '/angle', # length 3 vector of integer angles
-            self.record_angle,
+        #subscription -> 3 subscriptions
+        #1) action velocity subscription
+        self.subscription_1 = self.create_subscription(
+            Twist,
+            '/command/setAction', # length 3 vector of integer angles
+            self.logger_velocity,
             qos_profile
         )
-        self.subscription #prevent unused variable warning
+        self.subscription_1 #prevent unused variable warning
 
-        #publisher
-        self.publisher = self.create_publisher(Float32MultiArray,
-        'state', qos_profile)
+        #2) tag return logger
+        self.subscription_2 = self.create_subscription(
+            Bool,
+            '/tag_return', # length 3 vector of integer angles
+            self.logger_return,
+            qos_profile
+        )
+        self.subscription_2
 
-        #set timer
-        self.timer = self.create_timer(0.1, self.get_frame)
+        #3) tag position logger
+        self.subscription_3 = self.create_subscription(
+            Point,
+            '/tag_position', # length 3 vector of integer angles
+            self.logger_position,
+            qos_profile
+        )
+        self.subscription_3
 
+        #self.timer = self.create_timer(0.1, self.publish_camera)
 
-    def record_angle(self, msg):
-        #self.get_logger().info('angle received from controller')
-        self.servo_angle = msg.data
-        #record angle from subscription
+    #total 3 callbacks
+    def logger_velocity(self, msg):
+        linear_vel = msg.linear.x #float32
+        self.get_logger().info('fake robot velocity: %f' %linear_vel)
 
+    def logger_return(self, msg):
+        value = 1 if msg.data == True else 0
+        self.get_logger().info('fake robot return: %d' %value)
 
-    def get_frame(self):
-        #read camera
-        try:
-            frame = self.image
-            #ret, frame = self.cap.read()   #*********************************************************************************
-            #cv2.imshow('test', frame) #works only when run separately
-            #cv2.waitKey(1)
-            #process image -> get coordinate of vertices, 4x2 matrix
-            vertex_list = detect_red_box(frame) # ERROR!!!!!!!!!!!!!!!!!!!!!!!!!!
-            #get coordinate of arm tip, 1x2 vector
-            arm_tip = detect_green_dot(frame)
+    def logger_position(self, msg):
+        self.get_logger().info('fake robot tag: %d, %d, %d' %msg.x %msg.y %msg.z)
 
-            #self.get_logger().info("got box and dot")
-
-            # append all
-            state = np.array(vertex_list).flatten().tolist()
-            state += arm_tip
-            try:
-                state += self.servo_angle #angle info received
-                #self.get_logger().info("servo angle appended")
-            except:
-                state += np.zeros(3).tolist()
-
-        except:
-            self.get_logger().info("cap not opened")
-            state = np.zeros(13)
-
-        #publish
-        state_array = Float32MultiArray()
-        state_array.data = np.float32(state).tolist()
-        #self.get_logger().info('successfully transitioned, publishing...')
-        self.publisher.publish(state_array)
-
-
+    # def publish_camera(self):
+    #     imager = Image()
+    #     cap = cv2.VideoCapture(0)
+    #     while cap.isOpened():
+    #         ret, frame = cap.read()
+    #         size_tuple = np.shape(frame)
+    #         flattened_image = np.array(frame).flatten()
+    #         imager.data = flattened_image
+    #         imager.height = size_tuple[0]
+    #         imager.width = size_tuple[1]
+    #         self.publisher.publish(imager)
 
 def main(args=None):
     #main function call
     rclpy.init(args=args)
-    node = GET_FRAME()
+    node = FAKE_ROBOT()
     rclpy.spin(node)
     node.destroy_node()
     rclpy.shutdown()

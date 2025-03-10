@@ -1,0 +1,4 @@
+[console_scripts]
+fake_robot = tag_follow.fake_robot:main
+follower = tag_follow.follower:main
+tag_location = tag_follow.tag_location:main
