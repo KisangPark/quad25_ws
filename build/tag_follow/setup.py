@@ -1,1 +1,0 @@
-/home/kisangpark/v60_ws/src/tag_follow/setup.py

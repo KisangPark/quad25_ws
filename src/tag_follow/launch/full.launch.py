@@ -20,6 +20,8 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.substitutions import FindPackageShare
 import xacro
 
+os.environ['RCUTILS_LOGGING_LEVEL'] = 'DEBUG'
+
 def generate_launch_description():
     package_name = "tag_follow"
 
@@ -29,8 +31,9 @@ def generate_launch_description():
     #tag_location node
     tag_location = Node(
     package=package_name,
-    executable='tag_location',
-    name='tag_location',
+    executable='tag_locator',
+    name='tag_locator',
+    output="screen",
     )
 
     #follower node
@@ -38,6 +41,7 @@ def generate_launch_description():
     package=package_name,
     executable='follower',
     name='follower',
+    output="screen",
     )
 
     #fake_robot node
@@ -45,6 +49,7 @@ def generate_launch_description():
     package=package_name,
     executable='fake_robot',
     name='fake_robot',
+    output="screen",
     )
 
     return LaunchDescription(

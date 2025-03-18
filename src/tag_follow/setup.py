@@ -24,7 +24,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'tag_location = tag_follow.tag_location:main',
+            'tag_locator = tag_follow.tag_location:main',
             'follower = tag_follow.follower:main',
             'fake_robot = tag_follow.fake_robot:main',
         ],

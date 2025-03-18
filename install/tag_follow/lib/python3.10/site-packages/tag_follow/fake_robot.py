@@ -59,7 +59,7 @@ class FAKE_ROBOT(Node):
         #publish camera frame to ROS Image
         self.publisher = self.create_publisher(Image,
         '/argus/ar0234_front_left/image_raw', qos_profile)
-        self.timer = self.create_timer(0.1, self.publish_camera)
+        self.timer = self.create_timer(1, self.publish_camera)
 
     #total 3 callbacks
     def logger_velocity(self, msg):
