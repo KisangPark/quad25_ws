@@ -28,7 +28,7 @@ def main():
     #get arguments, parse the video
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        '--video', type=str, default="http://192.168.168.105:8080/stream?topic=/argus/ar0234_rear/image_raw")
+        '--video', type=str, default="http://192.168.168.105:8080/stream?topic=/argus/ar0234_front_left/image_raw")
     parser.add_argument('--frame_name', type=str, default='front_right')
     parser.add_argument('--output', type=str, default="output.mp4")
     parser.add_argument('--codec', type=str, default="mp4v")

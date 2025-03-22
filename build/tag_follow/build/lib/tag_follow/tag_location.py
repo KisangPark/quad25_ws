@@ -80,7 +80,7 @@ class LOCATOR(Node):
         #subscriber
         self.subscription = self.create_subscription(
             Image,#ROS2 image topic
-            '/argus/ar0234_front_left/image_raw', # length 3 vector of integer angles
+            '/user/image_raw', # length 3 vector of integer angles
             self.get_position,
             qos_profile
         )

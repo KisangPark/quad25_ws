@@ -14,6 +14,8 @@ tag_follow/__init__.py
 tag_follow/fake_robot.py
 tag_follow/follower.py
 tag_follow/tag_location.py
+tag_follow/video_parser/__init__.py
+tag_follow/video_parser/aruco_tag.py
 test/test_copyright.py
 test/test_flake8.py
 test/test_pep257.py

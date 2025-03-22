@@ -2,10 +2,14 @@
 /home/kisangpark/v60_ws/install/tag_follow/lib/python3.10/site-packages/tag_follow/tag_location.py
 /home/kisangpark/v60_ws/install/tag_follow/lib/python3.10/site-packages/tag_follow/__init__.py
 /home/kisangpark/v60_ws/install/tag_follow/lib/python3.10/site-packages/tag_follow/follower.py
+/home/kisangpark/v60_ws/install/tag_follow/lib/python3.10/site-packages/tag_follow/video_parser/__init__.py
+/home/kisangpark/v60_ws/install/tag_follow/lib/python3.10/site-packages/tag_follow/video_parser/aruco_tag.py
 /home/kisangpark/v60_ws/install/tag_follow/lib/python3.10/site-packages/tag_follow/__pycache__/fake_robot.cpython-310.pyc
 /home/kisangpark/v60_ws/install/tag_follow/lib/python3.10/site-packages/tag_follow/__pycache__/tag_location.cpython-310.pyc
 /home/kisangpark/v60_ws/install/tag_follow/lib/python3.10/site-packages/tag_follow/__pycache__/__init__.cpython-310.pyc
 /home/kisangpark/v60_ws/install/tag_follow/lib/python3.10/site-packages/tag_follow/__pycache__/follower.cpython-310.pyc
+/home/kisangpark/v60_ws/install/tag_follow/lib/python3.10/site-packages/tag_follow/video_parser/__pycache__/__init__.cpython-310.pyc
+/home/kisangpark/v60_ws/install/tag_follow/lib/python3.10/site-packages/tag_follow/video_parser/__pycache__/aruco_tag.cpython-310.pyc
 /home/kisangpark/v60_ws/install/tag_follow/share/ament_index/resource_index/packages/tag_follow
 /home/kisangpark/v60_ws/install/tag_follow/share/tag_follow/package.xml
 /home/kisangpark/v60_ws/install/tag_follow/share/tag_follow/launch/full.launch.py

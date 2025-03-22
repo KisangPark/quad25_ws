@@ -28,7 +28,7 @@ from cv_bridge import CvBridge
 #load calibration data -> saved from calibration.py
 inner_matrix = np.load("/home/kisangpark/v60_ws/src/tag_follow/matrix.npy")
 distortion = np.load("/home/kisangpark/v60_ws/src/tag_follow/distortion.npy")
-real_size = 15
+real_size = 20
 
 #load aruco dictionary, 16 binary!
 arucodict = cv2.aruco.Dictionary_get(cv2.aruco.DICT_4X4_50)
@@ -80,7 +80,7 @@ class LOCATOR(Node):
         #subscriber
         self.subscription = self.create_subscription(
             Image,#ROS2 image topic
-            '/argus/ar0234_front_left/image_raw', # length 3 vector of integer angles
+            '/user/image_raw', # length 3 vector of integer angles
             self.get_position,
             qos_profile
         )
